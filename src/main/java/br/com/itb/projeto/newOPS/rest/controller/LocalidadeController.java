@@ -1,82 +1,62 @@
 package br.com.itb.projeto.newOPS.rest.controller;
 
-import java.util.List;
-
+import br.com.itb.projeto.newOPS.model.entity.Localidade;
+import br.com.itb.projeto.newOPS.rest.exception.ResourceNotFoundException;
+import br.com.itb.projeto.newOPS.service.LocalidadeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-import br.com.itb.projeto.newOPS.model.entity.HistoricoOcorrencia;
-import br.com.itb.projeto.newOPS.model.entity.Localidade;
-import br.com.itb.projeto.newOPS.model.entity.Ocorrencia;
-import br.com.itb.projeto.newOPS.model.entity.Usuario;
-import br.com.itb.projeto.newOPS.rest.exception.ResourceNotFoundException;
-import br.com.itb.projeto.newOPS.service.LocalidadeService;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/localidade")
-
 public class LocalidadeController {
 
-    private LocalidadeService localidadeService;
+    private final LocalidadeService localidadeService;
 
     public LocalidadeController(LocalidadeService localidadeService) {
-        super();
         this.localidadeService = localidadeService;
     }
 
-    @GetMapping("/test")
-    public String getTest() {
-        return "Olá, Localidade!";
-    }
-
-    @GetMapping("/findById/{id}")
-    public ResponseEntity<Localidade> findById(@PathVariable long id){
-
-        Localidade localidade = localidadeService.findById(id);
-
-        if (localidade != null) {
-            return new ResponseEntity<Localidade>(localidade, HttpStatus.OK);
-        }
-
-        throw new ResourceNotFoundException("Localidade não encontrada!");
-    }
-
-
-    @GetMapping("/findAll")
-    public ResponseEntity<List<Localidade>> findAll(){
-
+    // Método para buscar todas as localidades
+    @GetMapping
+    public ResponseEntity<List<Localidade>> findAll() {
         List<Localidade> localidades = localidadeService.findAll();
-
-        return new ResponseEntity<List<Localidade>>(localidades, HttpStatus.OK);
+        return ResponseEntity.ok(localidades);
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<?> save(@RequestBody Localidade localidade) {
-
-        Localidade _localidade = localidadeService.save(localidade);
-
-        return ResponseEntity.ok()
-                .body("Localidade cadastrada com sucesso!");
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteLocalidade(@PathVariable long id) {
-        try {
-            localidadeService.deleteById(id);
-            return ResponseEntity.ok("Localidade deletada com sucesso.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body("Erro: " + e.getMessage());
+    // Método para buscar uma localidade por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Localidade> findById(@PathVariable long id) {
+        Localidade localidade = localidadeService.findById(id);
+        if (localidade != null) {
+            return ResponseEntity.ok(localidade);
         }
+        throw new ResourceNotFoundException("Localidade não encontrada com ID: " + id);
     }
 
-    @PutMapping("/update/{id}")
+    // Método para verificar se a localidade já existe (usado para evitar duplicidade)
+    @GetMapping("/verificar-duplicidade")
+    public ResponseEntity<Boolean> verificarDuplicidade(@RequestParam String nome) {
+        boolean exists = localidadeService.existsByName(nome);
+        return ResponseEntity.ok(exists);
+    }
+
+    // Método para salvar uma nova localidade
+    @PostMapping
+    public ResponseEntity<Localidade> save(@RequestBody Localidade localidade) {
+        Localidade savedLocalidade = localidadeService.save(localidade);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedLocalidade);
+    }
+
+    // Método para atualizar uma localidade existente
+    @PutMapping("/{id}")
     public ResponseEntity<?> updateLocalidade(@PathVariable long id, @RequestBody Localidade localidadeAtualizada) {
         try {
-            Localidade atualizada = localidadeService.alterarLocalidade(id, localidadeAtualizada);
-            return ResponseEntity.ok("Localidade atualizada com sucesso.");
+            Localidade updated = localidadeService.alterarLocalidade(id, localidadeAtualizada);
+            return ResponseEntity.ok(updated);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
@@ -84,23 +64,14 @@ public class LocalidadeController {
         }
     }
 
-    @PutMapping("/inativar/{id}")
-    public ResponseEntity<String> inativar(@PathVariable long id) {
+    // Método para deletar uma localidade
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteLocalidade(@PathVariable long id) {
         try {
-            Localidade localidade = localidadeService.inativar(id);
-            return ResponseEntity.ok("Localidade inativada com sucesso.");
+            localidadeService.deleteById(id);
+            return ResponseEntity.ok("Localidade deletada com sucesso.");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body("Erro: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/reativar/{id}")
-    public ResponseEntity<String> reativar(@PathVariable long id) {
-        try {
-            Localidade localidade = localidadeService.reativar(id);
-            return ResponseEntity.ok("Localidade reativada com sucesso.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body("Erro: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Erro: " + e.getMessage());
         }
     }
 }

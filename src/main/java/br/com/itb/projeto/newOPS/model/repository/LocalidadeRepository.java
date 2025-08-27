@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 import br.com.itb.projeto.newOPS.model.entity.Localidade;
 
 @Repository
-
-public interface LocalidadeRepository extends JpaRepository<Localidade, Long>{
-
-
+public interface LocalidadeRepository extends JpaRepository<Localidade, Long> {
+    boolean existsByNome(String nome);
 }
