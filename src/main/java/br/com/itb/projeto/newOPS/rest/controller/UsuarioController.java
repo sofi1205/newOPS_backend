@@ -79,6 +79,15 @@ public class UsuarioController {
         return ResponseEntity.ok().body(_usuario);
     }
 
+    @PutMapping("editar/{id}")
+    public ResponseEntity<Usuario> editarUsuario(@PathVariable long id, @RequestBody Usuario usuario) {
+        Usuario _usuario = usuarioService.editar(id, usuario);
+        if(_usuario != null){
+            return  ResponseEntity.ok(_usuario);
+        }
+        return ResponseEntity.badRequest().body(_usuario);
+    }
+
     @PutMapping("/alterarSenha/{id}")
     public ResponseEntity<?> alterarSenha(@PathVariable long id, @RequestBody Usuario usuario){
         Usuario _usuario = usuarioService.alterarSenha(id, usuario);

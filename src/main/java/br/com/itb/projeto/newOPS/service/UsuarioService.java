@@ -119,6 +119,18 @@ public class UsuarioService {
 
         return null;
     }
+    @Transactional
+    public Usuario editar(long id, Usuario usuario){
+        Optional<Usuario> _usuario = usuarioRepository.findById(id);
+        if(_usuario.isPresent()){
+            Usuario usuarioAtualizado = _usuario.get();
+            usuarioAtualizado.setEmail(usuario.getEmail());
+            usuarioAtualizado.setNome(usuario.getNome());
+            usuarioAtualizado.setNivelAcesso(usuario.getNivelAcesso());
+            return usuarioRepository.save(usuarioAtualizado);
+        }
+        return null;
+    }
 
     @Transactional
     public Usuario alterarSenha(long id, Usuario usuario) {
